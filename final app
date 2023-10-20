@@ -1,0 +1,149 @@
+{
+  "_id": ObjectId("unique_id"),
+  "team_name": "The Boxing Titans",
+  "coach": "Coach Name",
+  "founding_year": 1990,
+  "members": [
+    {
+      "name": "Boxer 1",
+      "age": 28,
+      "weight_class": "Middleweight",
+      "record": {
+        "wins": 30,
+        "losses": 5,
+        "draws": 2
+      }
+    },
+    {
+      "name": "Boxer 2",
+      "age": 24,
+      "weight_class": "Lightweight",
+      "record": {
+        "wins": 20,
+        "losses": 3,
+        "draws": 1
+      }
+    },
+    // db.js
+const mongoose = require('mongoose');
+
+mongoose.connect('mongodb://localhost/boxing_team', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+const db = mongoose.connection;
+
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', () => {
+  console.log('Connected to MongoDB database');
+});
+// boxingTeamModel.js
+const mongoose = require('mongoose');
+
+const boxingTeamSchema = new mongoose.Schema({
+  team_name: String,
+  coach: String,
+  founding_year: Number,
+  members: [Object], // Define an appropriate schema for team members
+  location: {
+    city: String,
+    country: String,
+  },
+});
+
+module.exports = mongoose.model('BoxingTeam', boxingTeamSchema);
+// app.js
+const express = require('express');
+const app = express();
+const mongoose = require('mongoose');
+const BoxingTeam = require('./boxingTeamModel');
+
+// Middleware to parse JSON request bodies
+app.use(express.json());
+
+// Define your API routes here
+// ...
+
+// Start the Express server
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
+// Get all boxing teams
+app.get('/boxing-teams', async (req, res) => {
+  const teams = await BoxingTeam.find();
+  res.json(teams);
+});
+
+// Get a specific boxing team by ID
+app.get('/boxing-teams/:id', async (req, res) => {
+  const team = await BoxingTeam.findById(req.params.id);
+  if (!team) {
+    res.status(404).json({ error: 'Team not found' });
+    return;
+  }
+  res.json(team);
+});
+
+// Create a new boxing team
+app.post('/boxing-teams', async (req, res) => {
+  const team = new BoxingTeam(req.body);
+  await team.save();
+  res.json(team);
+});
+
+// Update a boxing team by ID
+app.put('/boxing-teams/:id', async (req, res) => {
+  const updatedTeam = await BoxingTeam.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true }
+  );
+  res.json(updatedTeam);
+});
+
+// Delete a boxing team by ID
+app.delete('/boxing-teams/:id', async (req, res) => {
+  await BoxingTeam.findByIdAndRemove(req.params.id);
+  res.json({ message: 'Team deleted' });
+});
+ng generate component team-list
+ng generate component team-detail
+ng generate component team-create
+ng generate component team-edit
+// app-routing.module.ts
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { TeamListComponent } from './team-list/team-list.component';
+import { TeamDetailComponent } from './team-detail/team-detail.component';
+import { TeamCreateComponent } from './team-create/team-create.component';
+import { TeamEditComponent } from './team-edit/team-edit.component';
+
+const routes: Routes = [
+  { path: '', component: TeamListComponent },
+  { path: 'team/:id', component: TeamDetailComponent },
+  { path: 'create', component: TeamCreateComponent },
+  { path: 'edit/:id', component: TeamEditComponent },
+];
+
+@NgModule({
+  imports: [RouterModule.forRoot(routes)],
+  exports: [RouterModule],
+})
+export class AppRoutingModule {}
+<!-- team-list.component.html -->
+<h1>Boxing Teams</h1>
+<ul>
+  <li *ngFor="let team of teams">
+    <a [routerLink]="['/team', team._id]">{{ team.team_name }}</a>
+  </li>
+</ul>
+<!-- team-detail.component.html -->
+<h2>Team Details</h2>
+<div *ngIf="team">
+  <h3>{{ team.team_name }}</h3>
+  <p>Coach: {{ team.coach }}</p>
+  <p>Location: {{ team.location.city }}, {{ team.location.country }}</p>
+  <!-- Add more details here -->
+</div>
